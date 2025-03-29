@@ -35,6 +35,9 @@ importers:
       '@conform-to/zod':
         specifier: ^1.2.2
         version: 1.2.2(zod@3.24.1)
+      '@fast-simon/storefront-sdk':
+        specifier: ^0.0.1
+        version: 0.0.1
       '@icons-pack/react-simple-icons':
         specifier: ^11.2.0
         version: 11.2.0(react@19.0.0)
@@ -216,6 +219,9 @@ importers:
       '@faker-js/faker':
         specifier: ^9.4.0
         version: 9.4.0
+      '@fast-simon/types':
+        specifier: 1.0.32
+        version: 1.0.32
       '@gql.tada/cli-utils':
         specifier: ^1.6.3
         version: 1.6.3(@0no-co/graphqlsp@1.12.16(graphql@16.10.0)(typescript@5.7.3))(graphql@16.10.0)(typescript@5.7.3)
@@ -1017,6 +1023,12 @@ packages:
   '@faker-js/faker@9.4.0':
     resolution: {integrity: sha512-85+k0AxaZSTowL0gXp8zYWDIrWclTbRPg/pm/V0dSFZ6W6D4lhcG3uuZl4zLsEKfEvs69xDbLN2cHQudwp95JA==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
+
+  '@fast-simon/storefront-sdk@0.0.1':
+    resolution: {integrity: sha512-0UWg69ChodORl7Vp/MCdmaQQm2oK7K7GOPy2wCdgdJ32F74S5gjMpmVn5GZn3fRXy1EhLfwTa17qYowRM1LNrg==}
+
+  '@fast-simon/types@1.0.32':
+    resolution: {integrity: sha512-p46hmJKqfA+uMHZKwWL6Wih+L4grLud4QWsRqkRTfVDvfIfowF6N3G5a0QcqQqZf5Z0vfPOcT+6qO/3mWuu4nQ==}
 
   '@floating-ui/core@1.6.9':
     resolution: {integrity: sha512-uMXCuQ3BItDUbAMhIXw7UPXRfAlOAvZzdK9BWpE60MCn+Svt3aLn9jsPTi/WNGlRUu2uI0v5S7JiIUsbsvh3fw==}
@@ -6703,6 +6715,12 @@ snapshots:
   '@eslint/js@8.57.1': {}
 
   '@faker-js/faker@9.4.0': {}
+
+  '@fast-simon/storefront-sdk@0.0.1':
+    dependencies:
+      cookie: 1.0.2
+
+  '@fast-simon/types@1.0.32': {}
 
   '@floating-ui/core@1.6.9':
     dependencies:
