@@ -1,20 +1,19 @@
 'use server';
 
-import { BigCommerceGQLError, removeEdgesAndNodes } from '@bigcommerce/catalyst-client';
+import { BigCommerceGQLError } from '@bigcommerce/catalyst-client';
 import { SubmissionResult } from '@conform-to/react';
 import { parseWithZod } from '@conform-to/zod';
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 
 import { SearchResult } from '@/vibes/soul/primitives/navigation';
-import { getSessionCustomerAccessToken } from '~/auth';
-import { client } from '~/client';
+
 import { graphql } from '~/client/graphql';
-import { revalidate } from '~/client/revalidate-target';
-import { searchResultsTransformer } from '~/data-transformers/search-results-transformer';
-import { getPreferredCurrencyCode } from '~/lib/currency';
+
 
 import { SearchProductFragment } from './fragment';
+import {getFastSimon} from "~/lib/get-fast-simon";
+import {FastSimonDataTransformer} from "@fast-simon/storefront-sdk";
 
 const GetQuickSearchResultsQuery = graphql(
   `
@@ -79,23 +78,18 @@ export async function search(
     };
   }
 
-  const customerAccessToken = await getSessionCustomerAccessToken();
-
-  const currencyCode = await getPreferredCurrencyCode();
 
   try {
-    const response = await client.fetch({
-      document: GetQuickSearchResultsQuery,
-      variables: { filters: { searchTerm: submission.value.term }, currencyCode },
-      customerAccessToken,
-      fetchOptions: customerAccessToken ? { cache: 'no-store' } : { next: { revalidate } },
+    const fastSimon = await getFastSimon();
+    const results = await fastSimon.getAutocompleteResults({
+      query: submission.value.term,
     });
 
-    const { products } = response.data.site.search.searchProducts;
+    const fastSimonSearchResults = FastSimonDataTransformer.parseFastSimonAutocompletResponse(results);
 
     return {
       lastResult: submission.reply(),
-      searchResults: await searchResultsTransformer(removeEdgesAndNodes(products)),
+      searchResults: fastSimonSearchResults,
       emptyStateTitle,
       emptyStateSubtitle,
     };
