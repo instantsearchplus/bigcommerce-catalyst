@@ -13,7 +13,8 @@ import { Option as SortOption } from '@/vibes/soul/sections/products-list-sectio
 import { facetsTransformer } from '~/data-transformers/facets-transformer';
 import { pricesTransformer } from '~/data-transformers/prices-transformer';
 
-import { fetchFacetedSearch } from '../fetch-faceted-search';
+import { fetchFacetedSearch, fetchFastSimonFacetedSearch } from '../fetch-faceted-search';
+import { FastSimonDataTransformer } from '@fast-simon/storefront-sdk';
 
 const createSearchSearchParamsCache = cache(async (props: Props) => {
   const searchParams = await props.searchParams;
@@ -52,6 +53,18 @@ const getRefinedSearch = cache(async (props: Props) => {
   });
 });
 
+const getFastSimonRefinedSearch = cache(async (props: Props) => {
+  const searchParams = await props.searchParams;
+
+  return await fetchFastSimonFacetedSearch({
+    page: searchParams.page && typeof searchParams.page === 'string' ? searchParams.page : '1',
+    narrow: FastSimonDataTransformer.parseFiltersParams(searchParams),
+    sort: FastSimonDataTransformer.getFastSimonSortParam(searchParams.sort),
+    term: typeof searchParams.term === 'string' ? searchParams.term : null,
+    facetsOnly: props.facetsOnly || false,
+  });
+});
+
 async function getSearchTerm(props: Props): Promise<string> {
   const searchParams = await props.searchParams;
   const searchTerm = typeof searchParams.term === 'string' ? searchParams.term : '';
@@ -60,7 +73,7 @@ async function getSearchTerm(props: Props): Promise<string> {
 }
 
 const getSearch = cache(async (props: Props) => {
-  const search = await getRefinedSearch(props);
+  const search = await getFastSimonRefinedSearch(props);
 
   return search;
 });
@@ -85,32 +98,9 @@ async function getTitle(props: Props): Promise<string> {
 }
 
 async function getFilters(props: Props): Promise<Filter[]> {
-  const searchParams = await props.searchParams;
-  const searchTerm = await getSearchTerm(props);
-  const searchParamsCache = await createSearchSearchParamsCache(props);
-  const parsedSearchParams = searchParamsCache?.parse(searchParams) ?? {};
+  const refinedSearch = await getFastSimonRefinedSearch({ ...props, facetsOnly: true });
 
-  let refinedSearch: Awaited<ReturnType<typeof fetchFacetedSearch>> | null = null;
-
-  if (searchTerm !== '') {
-    refinedSearch = await getRefinedSearch(props);
-  }
-
-  const categorySearch = await fetchFacetedSearch({});
-  const allFacets = categorySearch.facets.items.filter(
-    (facet) => facet.__typename !== 'CategorySearchFilter',
-  );
-
-  const refinedFacets =
-    refinedSearch?.facets.items.filter((facet) => facet.__typename !== 'CategorySearchFilter') ??
-    [];
-  const transformedFacets = await facetsTransformer({
-    refinedFacets,
-    allFacets,
-    searchParams: { ...searchParams, ...parsedSearchParams },
-  });
-
-  return transformedFacets.filter((facet) => facet != null);
+  return refinedSearch.facets.items;
 }
 
 async function getListProducts(props: Props): Promise<ListProduct[]> {
@@ -138,7 +128,7 @@ async function getTotalCount(props: Props): Promise<number> {
 
   const search = await getSearch(props);
 
-  return search.products.collectionInfo?.totalItems ?? 0;
+  return search.products.collectionInfo.totalItems;
 }
 
 async function getSortLabel(): Promise<string> {
@@ -240,6 +230,7 @@ async function getBreadcrumbs(): Promise<Breadcrumb[]> {
 
 interface Props {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
+  facetsOnly?: boolean;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
