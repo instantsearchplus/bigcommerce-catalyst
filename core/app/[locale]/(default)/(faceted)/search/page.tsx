@@ -3,6 +3,7 @@ import { getFormatter, getTranslations } from 'next-intl/server';
 import { createSearchParamsCache } from 'nuqs/server';
 import { cache } from 'react';
 
+import { Stream } from '@/vibes/soul/lib/streamable';
 import { Breadcrumb } from '@/vibes/soul/primitives/breadcrumbs';
 import { CursorPaginationInfo } from '@/vibes/soul/primitives/cursor-pagination';
 import { ListProduct } from '@/vibes/soul/primitives/products-list';
@@ -15,6 +16,8 @@ import { pricesTransformer } from '~/data-transformers/prices-transformer';
 
 import { fetchFacetedSearch, fetchFastSimonFacetedSearch } from '../fetch-faceted-search';
 import { FastSimonDataTransformer } from '@fast-simon/storefront-sdk';
+
+import { SearchViewed } from '~/app/[locale]/(default)/(faceted)/search/search-viewed';
 
 const createSearchSearchParamsCache = cache(async (props: Props) => {
   const searchParams = await props.searchParams;
@@ -77,6 +80,12 @@ const getSearch = cache(async (props: Props) => {
 
   return search;
 });
+
+async function getFastSimonFullResponse(props: Props) {
+  const search = await getSearch(props);
+
+  return search.fullFastSimonResponse;
+}
 
 async function getProducts(props: Props) {
   const searchTerm = await getSearchTerm(props);
@@ -243,24 +252,29 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Search(props: Props) {
   return (
-    <ProductsListSection
-      breadcrumbs={getBreadcrumbs()}
-      compareLabel={getCompareLabel()}
-      emptyStateSubtitle={getEmptyStateSubtitle()}
-      emptyStateTitle={getEmptyStateTitle(props)}
-      filterLabel={await getFilterLabel()}
-      filters={getFilters(props)}
-      filtersPanelTitle={getFiltersPanelTitle()}
-      paginationInfo={getPaginationInfo(props)}
-      products={getListProducts(props)}
-      rangeFilterApplyLabel={getRangeFilterApplyLabel()}
-      resetFiltersLabel={getResetFiltersLabel()}
-      sortDefaultValue="featured"
-      sortLabel={getSortLabel()}
-      sortOptions={getSortOptions()}
-      sortParamName="sort"
-      title={getTitle(props)}
-      totalCount={getTotalCount(props)}
-    />
+    <>
+      <ProductsListSection
+        breadcrumbs={getBreadcrumbs()}
+        compareLabel={getCompareLabel()}
+        emptyStateSubtitle={getEmptyStateSubtitle()}
+        emptyStateTitle={getEmptyStateTitle(props)}
+        filterLabel={await getFilterLabel()}
+        filters={getFilters(props)}
+        filtersPanelTitle={getFiltersPanelTitle()}
+        paginationInfo={getPaginationInfo(props)}
+        products={getListProducts(props)}
+        rangeFilterApplyLabel={getRangeFilterApplyLabel()}
+        resetFiltersLabel={getResetFiltersLabel()}
+        sortDefaultValue="featured"
+        sortLabel={getSortLabel()}
+        sortOptions={getSortOptions()}
+        sortParamName="sort"
+        title={getTitle(props)}
+        totalCount={getTotalCount(props)}
+      />
+      <Stream value={getFastSimonFullResponse(props)}>
+        {(fastSimonData) => <SearchViewed fastSimonData={fastSimonData} />}
+      </Stream>
+    </>
   );
 }
