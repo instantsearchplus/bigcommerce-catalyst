@@ -6,6 +6,7 @@ import { FragmentOf } from '~/client/graphql';
 import { bodl } from '~/lib/bodl';
 
 import { ProductViewedFragment } from './fragment';
+import {analyticsManager} from "@fast-simon/storefront-sdk";
 
 interface Props {
   product: FragmentOf<typeof ProductViewedFragment>;
@@ -35,6 +36,8 @@ export const ProductViewed = ({ product }: Props) => {
       currency: transformedProduct.currency,
       line_items: [transformedProduct],
     });
+
+    analyticsManager.emit('product_viewed', transformedProduct);
   }, [product]);
 
   return null;

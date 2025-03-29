@@ -6,7 +6,7 @@ import { getFsSessionForRequest } from '~/lib/get-fast-simon';
 
 const PersonalizationDataSchema = z.object({
   productId: z.string().optional(),
-  userSession: z.string().optional(),
+  userSession: z.number().optional(),
   sessionToken: z.string().optional(),
 });
 
