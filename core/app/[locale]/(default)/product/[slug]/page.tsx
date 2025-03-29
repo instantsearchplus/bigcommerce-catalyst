@@ -17,6 +17,8 @@ import { ProductSchema } from './_components/product-schema';
 import { ProductViewed } from './_components/product-viewed';
 import { PaginationSearchParamNames, Reviews } from './_components/reviews';
 import { getProductData } from './page-data';
+import {getFastSimon} from "~/lib/get-fast-simon";
+import {FastSimonDataTransformer} from "@fast-simon/storefront-sdk";
 
 const cachedProductDataVariables = cache(
   async (productId: string, searchParams: Props['searchParams']) => {
@@ -188,6 +190,26 @@ const getRelatedProducts = async (props: Props) => {
   return productCardTransformer(relatedProducts, format);
 };
 
+const getFastSimonRelatedResponse = cache(async (props: Props) => {
+  const fastSimon = await getFastSimon();
+  const { slug } = await props.params;
+
+  const widgetIds = ['17430823976238023'];
+
+  return await fastSimon.getRecommendations({
+    widgetIds,
+    productId: slug,
+  });
+});
+
+const getFastSimonRelatedProducts = async (props: Props) => {
+  const recommendationsResponse = await getFastSimonRelatedResponse(props);
+
+  return FastSimonDataTransformer.parseFastSimonAutocompleteProducts(
+    recommendationsResponse.widget_responses[0]?.products || [],
+  );
+};
+
 interface Props {
   params: Promise<{ slug: string; locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -259,7 +281,7 @@ export default async function Product(props: Props) {
         emptyStateTitle={t('RelatedProducts.noRelatedProducts')}
         nextLabel={t('RelatedProducts.nextProducts')}
         previousLabel={t('RelatedProducts.previousProducts')}
-        products={getRelatedProducts(props)}
+        products={getFastSimonRelatedProducts(props)}
         scrollbarLabel={t('RelatedProducts.scrollbar')}
         title={t('RelatedProducts.title')}
       />
