@@ -15,6 +15,8 @@ export function Providers({ children }: PropsWithChildren) {
         <CompareDrawerProvider>{children}</CompareDrawerProvider>
       </CartProvider>
       <FastSimonAnalytics
+        storeId={process.env.NEXT_PUBLIC_FAST_SIMON_STORE_ID!}
+        uuid={process.env.NEXT_PUBLIC_FAST_SIMON_UUID!}
         analyticsContextValue={analyticsManager}
         collectionPersonalization={true}
         searchPersonalization={true}
