@@ -23,6 +23,7 @@ import { CategoryViewed } from './_components/category-viewed';
 import { getCategoryPageData } from './page-data';
 
 import { FastSimonDataTransformer } from '@fast-simon/storefront-sdk';
+import {SmartCollectionResponse} from "@fast-simon/types";
 
 const cacheCategoryFacetedSearch = cache((categoryId: string) => {
   return { category: Number(categoryId) };
@@ -176,6 +177,12 @@ async function getFilters(props: Props): Promise<Filter[]> {
   return refinedSearch.facets.items;
 }
 
+async function getFastSimonFullResponse(props: Props) {
+  const search = await getSearch(props);
+
+  return search.fullFastSimonResponse;
+}
+
 async function getSortLabel(): Promise<string> {
   const t = await getTranslations('FacetedGroup.SortBy');
 
@@ -295,9 +302,9 @@ export default async function Category(props: Props) {
         title={getTitle(props)}
         totalCount={getTotalCount(props)}
       />
-      <Stream value={Promise.all([getCategory(props), getProducts(props)])}>
-        {([category, products]) => (
-          <CategoryViewed category={category} categoryId={category.entityId} products={products} />
+      <Stream value={Promise.all([getCategory(props), getProducts(props), getFastSimonFullResponse(props)])}>
+        {([category, products, fastSimonData]) => (
+          <CategoryViewed category={category} categoryId={category.entityId} fastSimonData={fastSimonData as SmartCollectionResponse} products={products}/>
         )}
       </Stream>
     </>

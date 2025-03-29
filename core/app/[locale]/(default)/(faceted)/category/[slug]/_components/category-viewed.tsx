@@ -8,6 +8,8 @@ import { ProductCardFragment } from '~/components/product-card/fragment';
 import { bodl } from '~/lib/bodl';
 
 import { getCategoryPageData } from '../page-data';
+import {analyticsManager} from "@fast-simon/storefront-sdk";
+import {SmartCollectionResponse} from "@fast-simon/types";
 
 type Category = Awaited<ReturnType<typeof getCategoryPageData>>['category'];
 type productSearchItem = FragmentOf<typeof ProductCardFragment>;
@@ -16,6 +18,7 @@ interface Props {
   categoryId: number;
   category: Category;
   products: productSearchItem[];
+  fastSimonData: SmartCollectionResponse;
 }
 
 const productItemTransform = (p: productSearchItem, c: Category) => {
@@ -34,14 +37,16 @@ const productItemTransform = (p: productSearchItem, c: Category) => {
   };
 };
 
-export const CategoryViewed = ({ categoryId, category, products }: Props) => {
+export const CategoryViewed = ({ categoryId, category, products, fastSimonData }: Props) => {
   useEffect(() => {
     bodl.navigation.categoryViewed({
       category_id: categoryId,
       category_name: category?.name ?? '',
       line_items: products.map((p) => productItemTransform(p, category)),
     });
-  }, [category, categoryId, products]);
+
+    analyticsManager.emit('collection_viewed', { fastSimonData });
+  }, [category, categoryId, products, fastSimonData]);
 
   return null;
 };
