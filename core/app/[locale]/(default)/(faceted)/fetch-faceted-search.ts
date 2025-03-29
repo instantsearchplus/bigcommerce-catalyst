@@ -1,4 +1,11 @@
 import { removeEdgesAndNodes } from '@bigcommerce/catalyst-client';
+import { FastSimonDataTransformer } from '@fast-simon/storefront-sdk';
+import {
+  SortBy as FastSimonSortBy,
+  SearchParams,
+  ServerNarrow,
+  SmartCollectionsParams,
+} from '@fast-simon/types';
 import { cache } from 'react';
 import { z } from 'zod';
 
@@ -8,6 +15,7 @@ import { PaginationFragment } from '~/client/fragments/pagination';
 import { graphql, VariablesOf } from '~/client/graphql';
 import { ProductCardFragment } from '~/components/product-card/fragment';
 import { getPreferredCurrencyCode } from '~/lib/currency';
+import { getFastSimon } from '~/lib/get-fast-simon';
 
 const GetProductSearchResultsQuery = graphql(
   `
@@ -403,3 +411,51 @@ export const fetchFacetedSearch = cache(
     });
   },
 );
+
+interface FastSimonProductSearchParams {
+  page?: string | null;
+  categoryId?: string | number;
+  narrow?: ServerNarrow[] | null;
+  sort?: FastSimonSortBy | null | '';
+  term?: string | null;
+  facetsOnly?: boolean;
+}
+
+const getFastSimonProductSearchResults = cache(
+  async ({
+    page = '1',
+    narrow,
+    sort = '',
+    categoryId,
+    term,
+    facetsOnly,
+  }: FastSimonProductSearchParams) => {
+    const fastSimon = await getFastSimon();
+
+    const params: SmartCollectionsParams | SearchParams = {
+      page: Number(page || '1'),
+      narrow: narrow || undefined,
+      sortBy: sort || undefined,
+      facetsRequired: facetsOnly,
+      productsPerPage: 12,
+      categoryID: String(categoryId || ''),
+      query: String(term || ''),
+    };
+
+    return categoryId
+      ? await fastSimon.getSmartCollection(params)
+      : await fastSimon.getSearchResults(params);
+  },
+);
+
+export const fetchFastSimonFacetedSearch = cache(async (params: FastSimonProductSearchParams) => {
+  const fastSimonResults = await getFastSimonProductSearchResults({ ...params, facetsOnly: false }); // cached
+
+  if (params.facetsOnly && !fastSimonResults.facets_completed) {
+    const facetsOnlyResponse = await getFastSimonProductSearchResults(params);
+
+    fastSimonResults.facets = facetsOnlyResponse.facets;
+  }
+
+  return FastSimonDataTransformer.parseFastSimonProductsResponseData(fastSimonResults);
+});
