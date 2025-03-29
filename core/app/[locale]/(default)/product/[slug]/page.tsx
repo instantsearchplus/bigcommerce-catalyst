@@ -19,6 +19,7 @@ import { PaginationSearchParamNames, Reviews } from './_components/reviews';
 import { getProductData } from './page-data';
 import {getFastSimon} from "~/lib/get-fast-simon";
 import {FastSimonDataTransformer} from "@fast-simon/storefront-sdk";
+import {FastSimonWidgetViewed} from "~/components/fast-simon-widget-viewed";
 
 const cachedProductDataVariables = cache(
   async (productId: string, searchParams: Props['searchParams']) => {
@@ -274,17 +275,21 @@ export default async function Product(props: Props) {
         quantityLabel={t('ProductDetails.quantity')}
         thumbnailLabel={t('ProductDetails.thumbnail')}
       />
-
-      <FeaturedProductsCarousel
-        cta={{ label: t('RelatedProducts.cta'), href: '/shop-all' }}
-        emptyStateSubtitle={t('RelatedProducts.browseCatalog')}
-        emptyStateTitle={t('RelatedProducts.noRelatedProducts')}
-        nextLabel={t('RelatedProducts.nextProducts')}
-        previousLabel={t('RelatedProducts.previousProducts')}
-        products={getFastSimonRelatedProducts(props)}
-        scrollbarLabel={t('RelatedProducts.scrollbar')}
-        title={t('RelatedProducts.title')}
-      />
+      <>
+        <FeaturedProductsCarousel
+          cta={{ label: t('RelatedProducts.cta'), href: '/shop-all' }}
+          emptyStateSubtitle={t('RelatedProducts.browseCatalog')}
+          emptyStateTitle={t('RelatedProducts.noRelatedProducts')}
+          nextLabel={t('RelatedProducts.nextProducts')}
+          previousLabel={t('RelatedProducts.previousProducts')}
+          products={getFastSimonRelatedProducts(props)}
+          scrollbarLabel={t('RelatedProducts.scrollbar')}
+          title={t('RelatedProducts.title')}
+        />
+        <Stream fallback={null} value={getFastSimonRelatedResponse(props)}>
+          {(response) => <FastSimonWidgetViewed recommendationsResponse={response} />}
+        </Stream>
+      </>
 
       <Reviews productId={productId} searchParams={parsedSearchParams} />
 
