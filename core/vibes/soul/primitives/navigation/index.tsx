@@ -28,6 +28,7 @@ import { Price } from '@/vibes/soul/primitives/price-label';
 import { ProductCard } from '@/vibes/soul/primitives/product-card';
 import { Link } from '~/components/link';
 import { usePathname, useRouter } from '~/i18n/routing';
+import {FastSimonReporting} from "@fast-simon/storefront-sdk";
 
 interface Link {
   label: string;
@@ -713,6 +714,18 @@ function SearchResults({
   stale: boolean;
   errors?: string[];
 }) {
+
+    const onAutocompleteProductClicked = useCallback(
+    (productId: string) => {
+      FastSimonReporting.prepareProductSeenFromAutocompleteData({ query, productId });
+    },
+    [query],
+  );
+
+  const onAutocompleteCategoryClicked = useCallback(() => {
+    FastSimonReporting.prepareCollectionSeenFromAutocompleteData({ query });
+  }, [query]);
+
   if (query === '') return null;
 
   if (errors != null && errors.length > 0) {
@@ -769,6 +782,7 @@ function SearchResults({
                       <Link
                         className="block rounded-lg bg-[var(--nav-search-result-link-background,transparent)] px-3 py-4 font-[family-name:var(--nav-search-result-link-font-family,var(--font-family-body))] font-semibold text-[var(--nav-search-result-link-text,hsl(var(--contrast-500)))] ring-[var(--nav-focus,hsl(var(--primary)))] transition-colors hover:bg-[var(--nav-search-result-link-background-hover,hsl(var(--contrast-100)))] hover:text-[var(--nav-search-result-link-text-hover,hsl(var(--foreground)))] focus-visible:outline-0 focus-visible:ring-2"
                         href={link.href}
+                        onClick={onAutocompleteCategoryClicked}
                       >
                         {link.label}
                       </Link>
@@ -794,7 +808,7 @@ function SearchResults({
                   role="listbox"
                 >
                   {result.products.map((product) => (
-                    <li key={product.id}>
+                    <li key={product.id} onClick={() => onAutocompleteProductClicked(product.id)}>
                       <ProductCard
                         imageSizes="(min-width: 42rem) 25vw, 50vw"
                         product={{

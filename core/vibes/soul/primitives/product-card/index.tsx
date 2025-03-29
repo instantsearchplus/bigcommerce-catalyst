@@ -1,3 +1,4 @@
+'use client';
 import { clsx } from 'clsx';
 
 import { Badge } from '@/vibes/soul/primitives/badge';
@@ -7,6 +8,7 @@ import { Image } from '~/components/image';
 import { Link } from '~/components/link';
 
 import { Compare } from './compare';
+import {FastSimonReporting} from "@fast-simon/storefront-sdk";
 
 export interface CardProduct {
   id: string;
@@ -60,6 +62,11 @@ export function ProductCard({
   imagePriority = false,
   imageSizes = '(min-width: 80rem) 20vw, (min-width: 64rem) 25vw, (min-width: 42rem) 33vw, (min-width: 24rem) 50vw, 100vw',
 }: Props) {
+
+  const reportProductClick = () => {
+    FastSimonReporting.productClicked(id);
+  };
+
   return (
     <div className={clsx('@container', className)}>
       <Link
@@ -67,6 +74,7 @@ export function ProductCard({
         className="group flex cursor-pointer flex-col gap-2 rounded-[var(--product-card-border-radius,1rem)] ring-[var(--product-card-focus,hsl(var(--primary)))] ring-offset-4 focus-visible:outline-0 focus-visible:ring-2"
         href={href}
         id={id}
+        onClick={reportProductClick}
       >
         <div
           className={clsx(
