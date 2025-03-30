@@ -15,9 +15,10 @@ import { facetsTransformer } from '~/data-transformers/facets-transformer';
 import { pageInfoTransformer } from '~/data-transformers/page-info-transformer';
 import { pricesTransformer } from '~/data-transformers/prices-transformer';
 
-import { fetchFacetedSearch } from '../../fetch-faceted-search';
+import {fetchFacetedSearch, fetchFastSimonFacetedSearch} from '../../fetch-faceted-search';
 
 import { getBrand as getBrandData } from './page-data';
+import {FastSimonDataTransformer} from "@fast-simon/storefront-sdk";
 
 const cachedBrandDataVariables = cache((brandId: string) => {
   return {
@@ -79,6 +80,22 @@ const createBrandSearchParamsCache = cache(async (props: Props) => {
   return createSearchParamsCache(filterParsers);
 });
 
+const getFastSimonRefinedSearch = cache(async (props: Props) => {
+  const allParams = await props.params;
+  const { slug } = allParams;
+
+  const categoryId = Number(slug);
+  const searchParams = await props.searchParams;
+
+  return await fetchFastSimonFacetedSearch({
+    page: searchParams.page && typeof searchParams.page === 'string' ? searchParams.page : '1',
+    narrow: FastSimonDataTransformer.parseFiltersParams(searchParams),
+    sort: FastSimonDataTransformer.getFastSimonSortParam(searchParams.sort),
+    categoryId,
+    facetsOnly: props.facetsOnly || false,
+  });
+});
+
 const getRefinedSearch = cache(async (props: Props) => {
   const { slug } = await props.params;
   const searchParams = await props.searchParams;
@@ -93,33 +110,15 @@ const getRefinedSearch = cache(async (props: Props) => {
 });
 
 async function getTotalCount(props: Props): Promise<number> {
-  const search = await getRefinedSearch(props);
+  const search = await getFastSimonRefinedSearch(props);
 
-  return search.products.collectionInfo?.totalItems ?? 0;
+  return search.products.collectionInfo.totalItems;
 }
 
 async function getFilters(props: Props): Promise<Filter[]> {
-  const { slug } = await props.params;
-  const searchParams = await props.searchParams;
-  const searchParamsCache = await createBrandSearchParamsCache(props);
-  const parsedSearchParams = searchParamsCache?.parse(searchParams) ?? {};
-  const brand = cacheBrandFacetedSearch(slug);
-  const brandSearch = await fetchFacetedSearch(brand);
-  const brandFacets = brandSearch.facets.items.filter(
-    (facet) => facet.__typename !== 'BrandSearchFilter',
-  );
-  const refinedSearch = await getRefinedSearch(props);
-  const refinedFacets = refinedSearch.facets.items.filter(
-    (facet) => facet.__typename !== 'BrandSearchFilter',
-  );
+  const refinedSearch = await getFastSimonRefinedSearch({ ...props, facetsOnly: true });
 
-  const transformedFacets = await facetsTransformer({
-    refinedFacets,
-    allFacets: brandFacets,
-    searchParams: { ...searchParams, ...parsedSearchParams },
-  });
-
-  return transformedFacets.filter((facet) => facet != null);
+  return refinedSearch.facets.items;
 }
 
 async function getSortOptions(): Promise<SortOption[]> {
@@ -139,7 +138,7 @@ async function getSortOptions(): Promise<SortOption[]> {
 }
 
 async function getListProducts(props: Props): Promise<ListProduct[]> {
-  const refinedSearch = await getRefinedSearch(props);
+  const refinedSearch = await getFastSimonRefinedSearch(props);
   const format = await getFormatter();
 
   return refinedSearch.products.items.map((product) => ({
