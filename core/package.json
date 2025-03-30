@@ -73,7 +73,7 @@
     "tailwindcss-radix": "^3.0.5",
     "uuid": "^11.0.5",
     "zod": "^3.24.1",
-    "@fast-simon/storefront-sdk": "^0.0.1"
+    "@fast-simon/storefront-sdk": "^1.0.0-beta.5"
   },
   "devDependencies": {
     "@0no-co/graphqlsp": "^1.12.16",
@@ -104,6 +104,6 @@
     "tailwindcss": "^3.4.16",
     "tailwindcss-animate": "1.0.7",
     "typescript": "^5.7.3",
-    "@fast-simon/types": "1.0.32"
+    "@fast-simon/types": "1.0.33"
   }
 }
