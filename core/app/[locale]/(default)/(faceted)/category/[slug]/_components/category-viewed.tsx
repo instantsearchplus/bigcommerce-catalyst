@@ -9,7 +9,7 @@ import { bodl } from '~/lib/bodl';
 
 import { getCategoryPageData } from '../page-data';
 import {analyticsManager} from "@fast-simon/storefront-sdk";
-import {SmartCollectionResponse} from "@fast-simon/types";
+import {SearchResponse, SmartCollectionResponse} from "@fast-simon/types";
 
 type Category = Awaited<ReturnType<typeof getCategoryPageData>>['category'];
 type productSearchItem = FragmentOf<typeof ProductCardFragment>;
@@ -18,7 +18,7 @@ interface Props {
   categoryId: number;
   category: Category;
   products: productSearchItem[];
-  fastSimonData: SmartCollectionResponse;
+  fastSimonData: SmartCollectionResponse | SearchResponse;
 }
 
 const productItemTransform = (p: productSearchItem, c: Category) => {

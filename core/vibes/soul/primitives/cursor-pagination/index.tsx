@@ -14,6 +14,8 @@ export interface CursorPaginationInfo {
   startCursor?: string | null;
   endCursorParamName?: string;
   endCursor?: string | null;
+  hasNextPage?: boolean | null;
+  hasPreviousPage?: boolean | null;
 }
 
 interface Props {
@@ -45,12 +47,14 @@ function CursorPaginationResolved({
     endCursorParamName = 'after',
     startCursor,
     endCursor,
+    hasNextPage,
+    hasPreviousPage,
   } = useStreamable(info);
   const searchParams = useSearchParams();
   const serialize = createSerializer({
-    [startCursorParamName]: parseAsString,
-    [endCursorParamName]: parseAsString,
+    page: parseAsString,
   });
+  const page = Number(searchParams.get('page') || '1');
   const previousLabel = useStreamable(streamablePreviousLabel) ?? 'Go to previous page';
   const nextLabel = useStreamable(streamableNextLabel) ?? 'Go to next page';
 
@@ -58,12 +62,11 @@ function CursorPaginationResolved({
     <nav aria-label={label} className="py-10" role="navigation">
       <ul className="flex items-center justify-center gap-3">
         <li>
-          {startCursor != null ? (
+          {hasPreviousPage ? (
             <PaginationLink
               aria-label={previousLabel}
               href={serialize(searchParams, {
-                [startCursorParamName]: startCursor,
-                [endCursorParamName]: null,
+                page: String(page - 1),
               })}
               scroll={scroll}
             >
@@ -76,12 +79,11 @@ function CursorPaginationResolved({
           )}
         </li>
         <li>
-          {endCursor != null ? (
+          {hasNextPage ? (
             <PaginationLink
               aria-label={nextLabel}
               href={serialize(searchParams, {
-                [endCursorParamName]: endCursor,
-                [startCursorParamName]: null,
+                page: String(page + 1),
               })}
               scroll={scroll}
             >
@@ -117,6 +119,8 @@ function PaginationLink({
       )}
       href={href}
       scroll={scroll}
+      prefetch="viewport"
+      prefetchKind="full"
     >
       {children}
     </Link>

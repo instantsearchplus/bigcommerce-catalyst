@@ -180,6 +180,7 @@ async function getPaginationInfo(props: Props): Promise<CursorPaginationInfo> {
   return {
     startCursorParamName: 'before',
     endCursorParamName: 'after',
+    ...search.products.pageInfo,
     endCursor: hasNextPage ? endCursor : null,
     startCursor: hasPreviousPage ? startCursor : null,
   };

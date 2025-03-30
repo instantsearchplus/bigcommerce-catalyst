@@ -207,8 +207,7 @@ async function getSortOptions(): Promise<SortOption[]> {
 
 async function getPaginationInfo(props: Props): Promise<CursorPaginationInfo> {
   const search = await getFastSimonRefinedSearch(props);
-
-  return pageInfoTransformer(search.products.pageInfo);
+  return { ...search.products.pageInfo, ...pageInfoTransformer(search.products.pageInfo) };
 }
 
 async function getFilterLabel(): Promise<string> {
@@ -304,7 +303,7 @@ export default async function Category(props: Props) {
       />
       <Stream value={Promise.all([getCategory(props), getProducts(props), getFastSimonFullResponse(props)])}>
         {([category, products, fastSimonData]) => (
-          <CategoryViewed category={category} categoryId={category.entityId} fastSimonData={fastSimonData as SmartCollectionResponse} products={products}/>
+          <CategoryViewed category={category} categoryId={category.entityId} fastSimonData={fastSimonData} products={products}/>
         )}
       </Stream>
     </>
