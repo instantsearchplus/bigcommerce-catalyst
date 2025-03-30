@@ -25,6 +25,7 @@ const LocaleQuery = graphql(`
 `);
 
 export default async (): Promise<NextConfig> => {
+
   let nextConfig: NextConfig = {
     reactStrictMode: true,
     experimental: {
@@ -37,6 +38,20 @@ export default async (): Promise<NextConfig> => {
     eslint: {
       ignoreDuringBuilds: !!process.env.CI,
       dirs: ['app', 'client', 'components', 'lib', 'middlewares'],
+    },
+    images:{
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'acp-magento.appspot.com',
+          pathname: '/**',
+        },
+        {
+          protocol: 'https',
+          hostname: 'assets.instantsearchplus.com',
+          pathname: '/**',
+        },
+      ],
     },
     // default URL generation in BigCommerce uses trailing slash
     trailingSlash: process.env.TRAILING_SLASH !== 'false',
