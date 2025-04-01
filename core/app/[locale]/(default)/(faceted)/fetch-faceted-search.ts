@@ -443,8 +443,14 @@ const getFastSimonProductSearchResults = cache(
     };
 
     return categoryId
-      ? await fastSimon.getSmartCollection(params)
-      : await fastSimon.getSearchResults(params);
+      ? await fastSimon.getSmartCollection(params, {
+          cache: 'force-cache',
+          next: { revalidate: 360 },
+        })
+      : await fastSimon.getSearchResults(params, {
+          cache: 'force-cache',
+          next: { revalidate: 3600 },
+        });
   },
 );
 
